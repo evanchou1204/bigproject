@@ -4,9 +4,6 @@ import 'package:view/widgets/button/add_CL_Button.dart';
 import 'package:view/constants/text_style.dart';
 import 'package:view/services/CollectionList_svs.dart';
 import 'package:view/services/Video_svs.dart';
-import 'package:view/pages/Collection_View.dart';
-import 'package:view/constants/route.dart';
-
 import 'package:view/models/CL.dart';
 import 'package:view/models/Video.dart';
 
@@ -19,9 +16,6 @@ class CollectionListView extends StatefulWidget {
 
 class _CollectionViewState extends State<CollectionListView> {
   List<Map<String, dynamic>> collection_List = [];
-
-  // {'肩膀': ["放鬆動作", "重訓後舒緩"]},
-  // {'手腕': ["三招解決", "手腕瑜珈"]}
   
   @override
   void initState() {
@@ -90,12 +84,6 @@ class _CollectionViewState extends State<CollectionListView> {
     }
   }
 
-  // void updateCollectionList(type, new_value) async {
-  //   List<CollectList> CL = [];
-  //   CollectionList_SVS service = CollectionList_SVS(CL: CL);
-  //   await service.updateCL(type, new_value);
-  // }
-
   void removeCollectionList(String cl_id) async {
     CollectionList_SVS service = CollectionList_SVS(CL: []);
     await service.removeCL(cl_id);
@@ -104,7 +92,7 @@ class _CollectionViewState extends State<CollectionListView> {
 
   @override
   Widget build(BuildContext context) {
-    // removeCollectionList("66860a6a6a4b4baac976185c");
+
     void _updateCL(String addname) {
       createCollectionList(addname);
     }
@@ -139,12 +127,6 @@ class _CollectionViewState extends State<CollectionListView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(child: collectionListCard.getCard(context)),
-                            // IconButton(
-                            //   icon: Icon(Icons.delete, color: Colors.black),
-                            //   onPressed: () {
-                            //     removeCollectionList(collection_List[index]['id']);
-                            //   },
-                            // ),
                           ],
                         ),
                       );

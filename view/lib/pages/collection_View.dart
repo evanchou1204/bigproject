@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';  // 用於JSON解析
-import 'package:http/http.dart' as http;
 import 'package:view/services/CollectionList_svs.dart';
 import 'package:view/models/CL.dart';
 import 'package:view/models/Video.dart';
-import 'package:view/pages/video_View.dart';
 import 'package:quickalert/quickalert.dart';
 import 'package:view/services/Video_svs.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:view/pages/collectionlist_View.dart';
 
 class CollectionView extends StatefulWidget {
   const CollectionView({super.key});
@@ -86,7 +84,7 @@ class _CollectionViewState extends State<CollectionView> {
     );
   }
 
-  // void _removeCLVideo(String videoID) async {
+  // void _removeCLVideo123() async {
   //   QuickAlert.show(
   //     context: context,
   //     type: QuickAlertType.confirm,
@@ -96,7 +94,7 @@ class _CollectionViewState extends State<CollectionView> {
   //     cancelBtnText: '取消',
   //     confirmBtnColor: Colors.red,
   //     onConfirmBtnTap: () async {
-  //       updateCollectionList("remove_video", videoID);
+  //       updateCollectionList("remove_video", "66a4c2caf27f8a43d717f763");
   //       // 更新資料庫，將影片從收藏清單中移除
   //
   //       Navigator.pop(context); // 關閉確認對話框
@@ -149,7 +147,12 @@ class _CollectionViewState extends State<CollectionView> {
           leading: IconButton(
             icon: const Icon(Icons.keyboard_arrow_left),
             onPressed: () {
-              Navigator.pop(context); // 返回上一頁
+              // Navigator.pop(context); // 返回上一頁
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => CollectionListView()),
+                    (Route<dynamic> route) => false,
+              );
             },
           ),
         ),
@@ -281,8 +284,6 @@ class VideoCardInCL extends StatefulWidget {
   _VideoCardInCLState createState() => _VideoCardInCLState();
 }
 
-
-
 class _VideoCardInCLState extends State<VideoCardInCL> {
   late Video video;
   late String clID;
@@ -296,7 +297,7 @@ class _VideoCardInCLState extends State<VideoCardInCL> {
     getVideo();
   }
 
-  void updateCollectionList(type, new_value) async {
+  Future<void> updateCollectionList(type, new_value) async {
     CollectionList_SVS service = CollectionList_SVS(CL: []);
     await service.updateCL(clID, type, new_value);
   }
@@ -315,10 +316,15 @@ class _VideoCardInCLState extends State<VideoCardInCL> {
         // if (!mounted) return;  // 确保当前 widget 仍然挂载
         try {
           // Perform the removal action
-          updateCollectionList("remove_video", video.id);
+          await updateCollectionList("remove_video", video.id);
           print("updateCollectionList");
-12
           // Close the confirmation dialog
+
+          // 關閉確認對話框
+          // Navigator.pushReplacementNamed(
+          //   context,
+          //   Routes.collectView,
+          // );
           Navigator.pop(context);
           print("Close the confirmation dialog");
           // Short delay before showing success message
@@ -351,8 +357,6 @@ class _VideoCardInCLState extends State<VideoCardInCL> {
       },
     );
   }
-
-
 
   void getVideo() async {
     Video_SVS service = Video_SVS(videos: video);

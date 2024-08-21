@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:view/constants/text_style.dart';
 import 'package:view/constants/route.dart';
-import 'dart:convert';
 import 'package:view/services/CollectionList_svs.dart';
+import 'package:view/pages/collectionlist_View.dart';
 
 class CollectionListCard {
   Map<String, dynamic> context = {};
 
   CollectionListCard({required this.context});
 
-  void removeCollectionList(String cl_id) async {
+  void removeCollectionList(BuildContext context, String cl_id) async {
     CollectionList_SVS service = CollectionList_SVS(CL: []);
     await service.removeCL(cl_id);
     // 顯示刪除成功的通知
-    ScaffoldMessenger.of(context["name"]).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('刪除成功'),
         duration: Duration(seconds: 2),
       ),
     );
     getCard(context);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => CollectionListView()),
+          (Route<dynamic> route) => false,
+    );
   }
 
   Card getCard(context) {
@@ -63,7 +68,7 @@ class CollectionListCard {
                   IconButton(
                     icon: Icon(Icons.delete, color: Colors.black),
                     onPressed: () {
-                      removeCollectionList(this.context['id']);
+                      removeCollectionList(context,this.context['id']);
                     },
                   ),
                 ],
