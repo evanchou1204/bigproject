@@ -6,8 +6,12 @@ import 'package:view/pages/collectionlist_View.dart';
 
 class CollectionListCard {
   Map<String, dynamic> context = {};
+  dynamic Function() onUpdateCL;
+  CollectionListCard({required this.context, required this.onUpdateCL});
 
-  CollectionListCard({required this.context});
+  void _handlePressed() {
+    onUpdateCL();
+  }
 
   void removeCollectionList(BuildContext context, String cl_id) async {
     CollectionList_SVS service = CollectionList_SVS(CL: []);
@@ -41,12 +45,15 @@ class CollectionListCard {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           ListTile(
-            onTap: () {
-              Navigator.pushNamed(
+            onTap: () async{
+              final result = await Navigator.pushNamed(
                 context,
                 Routes.collectView,
                 arguments: this.context,
               );
+              if (result == true) {
+                _handlePressed();
+              }
             },
             leading: Icon(
               Icons.elderly,
@@ -116,11 +123,11 @@ class CollectionListCard {
                             ),
                           ),
                         ),
-                        IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.restore_from_trash),
-                          color: Color.fromRGBO(56, 107, 79 , 1),
-                        ),
+                        // IconButton(
+                        //   onPressed: () {},
+                        //   icon: Icon(Icons.restore_from_trash),
+                        //   color: Color.fromRGBO(56, 107, 79 , 1),
+                        // ),
                       ],
                     ),
                   ),

@@ -8,9 +8,10 @@ class CallGPT_SVS{
     List<Map<String, List<Video>>> suggestMap = [];
     String finish = "no";
     CallGPT_SVS({required this.message});
+    final String baseUrl = 'http://172.20.10.3:8080';
 
-    Future<void> getDignose() async{
-      final url = Uri.parse('http://172.20.10.3:8080/diagnose');
+    Future<void> getDignose(String CR_id) async{
+      final url = Uri.parse('${baseUrl}/diagnose');
 
       final response = await http.post(
         url,
@@ -19,6 +20,7 @@ class CallGPT_SVS{
         },
         body: jsonEncode({
           "user_input": message,
+          "CR_id": CR_id,
         }),
       );
 
@@ -27,7 +29,7 @@ class CallGPT_SVS{
         finish = parsedData["end"].toString();
         this.response = parsedData['response'];
 
-        if (parsedData["end"]){
+        if (parsedData["end"].toString() =="True"){
           suggestMap = List<Map<String, List<Video>>>.from(
             (parsedData['Suggested_Videos'] as List).map((item) {
               Map<String, dynamic> mapItem = item as Map<String, dynamic>;
@@ -40,9 +42,9 @@ class CallGPT_SVS{
               };
             }),
           );
-          print(parsedData);
+          print(suggestMap);
           this.response = parsedData['response'];
-          print('SuggestVideos get successfully: ${this.response}');
+          print('SuggestVideos get successfully: ${this.suggestMap}');
         }
         print('Data get successfully: ${this.response}');
       } else {

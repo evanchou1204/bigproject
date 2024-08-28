@@ -8,11 +8,15 @@ class CollectionList_SVS{
 
   List<CollectList> CL = [];
   CollectionList_SVS({required this.CL});
-
+  final String baseUrl = 'http://172.20.10.3:8080';
   late User user;
 
   Future<List<CollectList>> getAllCL(String userId) async {
+<<<<<<< HEAD
   final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/get_ALLCL?user_id=$userId');
+=======
+  final url = Uri.parse('${baseUrl}/Collect_List_Controller/get_ALLCL?user_id=$userId');
+>>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
   final response = await http.get(url);
 
   if (response.statusCode == 200) {
@@ -36,7 +40,11 @@ class CollectionList_SVS{
   }
 
   Future<CollectList> getCL(String userId, String clId) async {
+<<<<<<< HEAD
     final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/get_CL?user_id=$userId&ClId=$clId');
+=======
+    final url = Uri.parse('${baseUrl}/Collect_List_Controller/get_CL?user_id=$userId&ClId=$clId');
+>>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -52,7 +60,11 @@ class CollectionList_SVS{
 
 
   Future<void> updateCL(cl_id ,type, new_value) async {
+<<<<<<< HEAD
     final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/update_CL');
+=======
+    final url = Uri.parse('${baseUrl}/Collect_List_Controller/update_CL');
+>>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
 
     final response = await http.put(
         url,
@@ -74,7 +86,11 @@ class CollectionList_SVS{
   }
 
   Future<bool> createCL(String userId, String name) async {
+<<<<<<< HEAD
     final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/create_CL');
+=======
+    final url = Uri.parse('${baseUrl}/Collect_List_Controller/create_CL');
+>>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
     final response = await http.post(
       url,
       headers: <String, String>{
@@ -98,7 +114,11 @@ class CollectionList_SVS{
 
 
   Future<void> removeCL(String cl_id) async {
+<<<<<<< HEAD
     final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/remove_CL');
+=======
+    final url = Uri.parse('${baseUrl}/Collect_List_Controller/remove_CL');
+>>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
 
     final response = await http.delete(
         url,
