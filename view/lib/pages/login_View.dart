@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:view/constants/route.dart';
 import 'package:view/services/login_svs.dart';
 import 'package:view/widgets/button/goto_Signup_or_Login.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -10,6 +12,7 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  bool _obscureText = true; //密碼show
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -18,8 +21,9 @@ class _LoginViewState extends State<LoginView> {
   @override
   void initState() { //初始值設定
     super.initState();
-    _emailController.text = "123@gmail";  // 設置初始值（如果需要）
-    _passwordController.text = "123456789";  // 設置初始值（如果需要）
+    FlutterNativeSplash.remove();
+    //_emailController.text = "123@gmail";  // 設置初始值（如果需要）
+    //_passwordController.text = "123456789";  // 設置初始值（如果需要）
   }
 
   // 添加這個方法
@@ -39,7 +43,7 @@ class _LoginViewState extends State<LoginView> {
 
     if (result['success']) {
       // 登錄成功，導航到account.view.dart
-      Navigator.pushReplacementNamed(context, Routes.accountView);
+      Navigator.pushReplacementNamed(context, Routes.baseview);
     } else {
       // 登錄失敗，顯示錯誤消息
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,6 +110,7 @@ class _LoginViewState extends State<LoginView> {
                   width: 350,
                     child: TextField(
                       controller: _passwordController,
+                      obscureText: _obscureText, // 控制密碼顯示或隱藏
                       decoration: const InputDecoration(
                         icon: Padding(
                           padding: EdgeInsets.fromLTRB(0, 45, 0, 0),
@@ -121,9 +126,11 @@ class _LoginViewState extends State<LoginView> {
                   top: 15,
                   right: 20,
                   child: IconButton(
-                    icon: Icon(Icons.remove_red_eye_outlined),
+                    icon: _obscureText ? Icon(Icons.visibility_off_outlined) : Icon(Icons.visibility_outlined),
                     onPressed: (){
-
+                      setState(() {
+                        _obscureText = !_obscureText; // 切換顯示或隱藏密碼
+                      });
                     },
                   ),
                 ),

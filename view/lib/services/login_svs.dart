@@ -1,6 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:view/constants/config.dart';
 
 class Login_SVS{
   String email = '';
@@ -9,7 +11,7 @@ class Login_SVS{
   Login_SVS({required this.email, required this.password});
 
   Future<Map<String, dynamic>> sendData() async {
-    final url = Uri.parse('http://192.168.68.105:8080/user/login');
+    final url = Uri.parse(Config.baseUrl + '/user/login');
     try {
       final response = await http.post(
         url,
@@ -48,16 +50,24 @@ class Login_SVS{
     }
   }
 
-  Future<void> _storeToken(String token) async {
+  static final key = encrypt.Key.fromUtf8('12345632characterslongpassphrase');
+  static final iv = encrypt.IV.fromLength(16);
+  static final encrypter = encrypt.Encrypter(encrypt.AES(key));
+
+  static Future<void> _storeToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('jwt_token', token);
+    final encryptedToken = encrypter.encrypt(token, iv: iv).base64;
+    await prefs.setString('jwt_token', encryptedToken);
   }
 
-
   // Utility function to get the stored token
-  Future<String?> getStoredToken() async {
+  static Future<String> getStoredToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('jwt_token');
+    final encryptedToken = prefs.getString('jwt_token');
+    if (encryptedToken != null) {
+      return encrypter.decrypt64(encryptedToken, iv: iv);
+    }
+    return "null";
   }
 
 }

@@ -29,16 +29,8 @@ class _AccountViewState extends State<AccountView> {
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('jwt_token');
-      print('JWT Token: $token');
-
-      if (token == null) {
-        throw Exception('No token found. Please log in again.');
-      }
-
       User_SVS userService = User_SVS();
-      var userData = await userService.getUserById(token);
+      var userData = await userService.getUserById();
       print('User Data: $userData');
 
       if (userData == null) {
@@ -63,17 +55,8 @@ class _AccountViewState extends State<AccountView> {
       isLoading = true;
     });
     try {
-      // 獲取已儲存的 JWT token
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('jwt_token');
-      print('JWT Token: $token'); // Debug: 打印 token
-
-      if (token == null) {
-        throw Exception('No token found. Please log in again.');
-      }
-
       User_SVS userService = User_SVS();
-      var result = await userService.updateUser(token, field, newValue);
+      var result = await userService.updateUser(field, newValue);
       if (result['success']) {
         // Update the local user data
         setState(() {
@@ -102,16 +85,8 @@ class _AccountViewState extends State<AccountView> {
       isLoading = true;
     });
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('jwt_token');
-      print('JWT Token: $token');
-
-      if (token == null) {
-        throw Exception('No token found. Please log in again.');
-      }
-
       User_SVS userService = User_SVS();
-      var result = await userService.updateUser(token, 'icon', newIcon);
+      var result = await userService.updateUser('icon', newIcon);
       if (result['success']) {
         setState(() {
           currentAvatarIcon = newIcon;
@@ -192,14 +167,20 @@ class _AccountViewState extends State<AccountView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Center(
-          child: Text(
-              "我的個人資料",
-              style: UI_TextStyle.Title_TextStyle
-          ),
+        title: Text(
+          '我的個人資料',
+          style: TextStyle(
+            color: Color.fromRGBO(56, 107, 79, 1),
+            fontWeight: FontWeight.bold,
+            letterSpacing: 3
+          )
         ),
+        backgroundColor: Colors.green[100],
+        elevation: 3,
+        centerTitle: true,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,11 +247,6 @@ class _AccountViewState extends State<AccountView> {
               children: [
                 Text(currentUser?.email ?? 'Loading...',
                     style: UI_TextStyle.AccountContext_TextStyle),
-                ModifyUserButton(
-                    orginalData: currentUser?.email ?? '',
-                    onUpdateUser: (newValue) =>
-                        _updateUserField('email', newValue)
-                ).getButton(context),
               ],
             ),
           ),
@@ -311,7 +287,7 @@ class _AccountViewState extends State<AccountView> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                child: Text('登出', style: TextStyle(fontSize: 18)),
+                child: Text('登出', style: TextStyle(fontSize: 18, color: Colors.black, letterSpacing: 5)),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 15),
                 ),

@@ -3,49 +3,58 @@ import 'dart:convert';
 import 'package:view/models/CL.dart';
 import 'package:view/models/User.dart';
 import 'package:view/models/Video.dart';
+import 'package:view/services/login_svs.dart';
+import 'package:view/constants/config.dart';
 
 class CollectionList_SVS{
 
   List<CollectList> CL = [];
   CollectionList_SVS({required this.CL});
-  final String baseUrl = 'http://172.20.10.3:8080';
+  final String baseUrl = Config.baseUrl;
   late User user;
 
-  Future<List<CollectList>> getAllCL(String userId) async {
-<<<<<<< HEAD
-  final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/get_ALLCL?user_id=$userId');
-=======
-  final url = Uri.parse('${baseUrl}/Collect_List_Controller/get_ALLCL?user_id=$userId');
->>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
-  final response = await http.get(url);
-
-  if (response.statusCode == 200) {
-    final content = jsonDecode(response.body);
-    List<dynamic> responseList = content["response"];
-
-    List<CollectList> collectList = responseList.map((item) {
-      try {
-        return CollectList.fromJson(item as String);
-      } catch (e) {
-        print('Error parsing item: $item');
-        throw e;
+  Future<List<CollectList>> getAllCL() async {
+    String token =  await Login_SVS.getStoredToken();
+    final url = Uri.parse('${baseUrl}/Collect_List_Controller/get_ALLCL');
+    final response = await http.get(
+      url,
+      headers:{'Authorization': 'Bearer $token',
       }
-    }).toList();
+    );
 
-    return collectList;
-  } else {
-    print('Failed to get data: ${response.statusCode}');
-    return [];
-  }
+    if (response.statusCode == 200) {
+      final content = jsonDecode(response.body);
+      List<dynamic> responseList = content["response"];
+
+      // 印出每一項資料以便調試
+      // for (var item in responseList) {
+      //   print('Item: $item');
+      // }
+
+      List<CollectList> collectList = responseList.map((item) {
+        try {
+          return CollectList.fromJson(item as String);
+        } catch (e) {
+          print('Error parsing item: $item');
+          throw e;
+        }
+      }).toList();
+
+      return collectList;
+    } else {
+      print('Failed to get data: ${response.statusCode}');
+      return [];
+    }
   }
 
-  Future<CollectList> getCL(String userId, String clId) async {
-<<<<<<< HEAD
-    final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/get_CL?user_id=$userId&ClId=$clId');
-=======
-    final url = Uri.parse('${baseUrl}/Collect_List_Controller/get_CL?user_id=$userId&ClId=$clId');
->>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
-    final response = await http.get(url);
+  Future<CollectList> getCL(String clId) async {
+    String token =  await Login_SVS.getStoredToken();
+    final url = Uri.parse('${baseUrl}/Collect_List_Controller/get_CL?ClId=$clId');
+    final response = await http.get(
+        url,
+        headers:{'Authorization': 'Bearer $token',
+        }
+    );
 
     if (response.statusCode == 200) {
       final content = jsonDecode(response.body);
@@ -60,11 +69,7 @@ class CollectionList_SVS{
 
 
   Future<void> updateCL(cl_id ,type, new_value) async {
-<<<<<<< HEAD
-    final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/update_CL');
-=======
     final url = Uri.parse('${baseUrl}/Collect_List_Controller/update_CL');
->>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
 
     final response = await http.put(
         url,
@@ -85,19 +90,16 @@ class CollectionList_SVS{
     }
   }
 
-  Future<bool> createCL(String userId, String name) async {
-<<<<<<< HEAD
-    final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/create_CL');
-=======
+  Future<bool> createCL(String name) async {
+    String token =  await Login_SVS.getStoredToken();
     final url = Uri.parse('${baseUrl}/Collect_List_Controller/create_CL');
->>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
     final response = await http.post(
       url,
       headers: <String, String>{
+        'Authorization': 'Bearer $token',
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode({
-        'user_id': userId,
         'name': name,
       }),
     );
@@ -114,11 +116,7 @@ class CollectionList_SVS{
 
 
   Future<void> removeCL(String cl_id) async {
-<<<<<<< HEAD
-    final url = Uri.parse('http://192.168.1.103:8080/Collect_List_Controller/remove_CL');
-=======
     final url = Uri.parse('${baseUrl}/Collect_List_Controller/remove_CL');
->>>>>>> 32ebeec86a5bedb4749f5f2e0d20b102971ee8e1
 
     final response = await http.delete(
         url,

@@ -25,10 +25,10 @@ class _CollectionViewState extends State<CollectionListView> {
 
   void getCollectionList() async {
     CollectionList_SVS service = CollectionList_SVS(CL: []);
-    List<CollectList> collectList = await service.getAllCL("66435c496b52ed9b072dc0e4");
+    List<CollectList> collectList = await service.getAllCL();
 
     for (var cl in collectList) {
-      print('ID: ${cl.id}, User ID: ${cl.userId}, Name: ${cl.name}, Collection: ${cl.collection}');
+      //print('ID: ${cl.id}, User ID: ${cl.userId}, Name: ${cl.name}, Collection: ${cl.collection}');
 
       // 建立一個新的 list 來存放 Video_Name
       List<String> videoNames = [];
@@ -45,7 +45,7 @@ class _CollectionViewState extends State<CollectionListView> {
             // 使用 Video_SVS 來獲取 video 的名稱
             await videoService.getVideoById(videoId);
             String videoName = videoService.videos.name;
-            print("videoName:"+videoName);
+            //print("videoName:"+videoName);
 
             // 將 videoName 添加到 videoNames 列表中
             videoNames.add(videoName);
@@ -75,7 +75,7 @@ class _CollectionViewState extends State<CollectionListView> {
 
   void createCollectionList(String newName) async {
     CollectionList_SVS service = CollectionList_SVS(CL: []);
-    bool success = await service.createCL("66435c496b52ed9b072dc0e4",newName);
+    bool success = await service.createCL(newName);
 
     if (success) {
       getCollectionList();
@@ -92,22 +92,29 @@ class _CollectionViewState extends State<CollectionListView> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 184e807e7d69166dd1f4e7c7b43510493c22e55b
     void _updateCL(String addname) {
       createCollectionList(addname);
     }
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: Color.fromRGBO(250, 255, 251, 1),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Center(
-          child: Text(
-            "我的收藏",
-            style: UI_TextStyle.Title_TextStyle,
-          ),
+        title: Text(
+            '我的收藏',
+            style: TextStyle(
+              color: Color.fromRGBO(56, 107, 79, 1),
+              fontWeight: FontWeight.bold,
+              letterSpacing: 3
+            )
         ),
-        backgroundColor: Color.fromRGBO(250, 255, 251, 1),
+        backgroundColor: Colors.green[100],
+        elevation: 3,
+        centerTitle: true,
       ),
       body: Stack(
         children: <Widget>[
@@ -120,13 +127,17 @@ class _CollectionViewState extends State<CollectionListView> {
                   child: ListView.builder(
                     itemCount: collection_List.length,
                     itemBuilder: (context, index) {
-                      CollectionListCard collectionListCard = CollectionListCard(context: collection_List[index], onUpdateCL: getCollectionList);
+                      CollectionListCard collectionListCard = CollectionListCard(contextData: collection_List[index], onUpdateCollectionList: getCollectionList);
                       return Padding(
                         padding: const EdgeInsets.fromLTRB(30.0, 20.0, 30.0, 0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+<<<<<<< HEAD
                             Expanded(child: collectionListCard.getCard(context)),
+=======
+                            Expanded(child: collectionListCard),
+>>>>>>> 184e807e7d69166dd1f4e7c7b43510493c22e55b
                           ],
                         ),
                       );

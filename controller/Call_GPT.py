@@ -15,7 +15,6 @@ from langchain_openai import ChatOpenAI
 from datetime import datetime
 #from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain.memory import ConversationBufferMemory
 from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
 import os
 import requests
@@ -50,7 +49,7 @@ prompt_template = """Use #zh_TW to write a concise summary within 30 to 50 words
 "{text}" to describe the User's situation.
 CONCISE SUMMARY:"""
 prompt = PromptTemplate.from_template(prompt_template)
-llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-0125" ,api_key = API_KEY)
+llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-0125", api_key = API_KEY)
 llm_chain = prompt | llm
 
 #診斷用之提示工程
@@ -154,13 +153,13 @@ def search_YT_video(keyword):
 # 處理GPT生成方向文字轉LIST
 def process_response(response):
     print("In process response")
-    response = response['text'] 
     matches = re.findall(r'"([^"]+)"', response)
     #print("matches: ")
     return matches
 
 #診斷控制器路由
 @callGPT_bp.route('/diagnose', methods=['POST'])
+@jwt_required()
 def diagnose():
     #處理POST所傳的data
     data = request.json
@@ -174,7 +173,7 @@ def diagnose():
     
     current_user_id = get_jwt_identity()
     print(f"JWT Identity (current_user_id): {current_user_id}")  # 打印取得的 current_user_id
-    user_id = data.get("user_id")
+    user_id = current_user_id
 
     CR_id = data.get("CR_id")  # 確保前端傳遞 CR_id
 
@@ -221,11 +220,11 @@ def diagnose():
 
     # Check if we need to stop the diagnosis loop
     if "尋求專業醫師" in response_text or "尋求專業醫生" in response_text:
-        return create_summary_response(message, CR_id, user_id)
+        return create_summary_response(message, CR_id, token)
 
     return jsonify({"response": message.get_Message_data(), "end": "False"})
 
-def create_summary_response(message, CR_id, user_id):
+def create_summary_response(message, CR_id, token):
     try:
         # 從記憶體中載入聊天歷史
         chat_history = MongoDBChatMessageHistory(
@@ -250,15 +249,13 @@ def create_summary_response(message, CR_id, user_id):
         config = {"configurable": {"session_id": CR_id}}
         #獲取推薦廣度關鍵字
         response = with_history.invoke({"question": chat_history.messages}, config = config).content
-        print("推薦廣度關鍵字:" + response)
 
         #獲取痠痛摘要
-        result = llm_chain.invoke({"text": chat_history.messages})['text']
+        result = llm_chain.invoke({"text": chat_history.messages}).content
 
         #處理關鍵字
         suggested_Videos = []
         keywords_list = process_response(response)
-        print("keywords:" + keywords_list)
         
         #蝶帶關鍵詞列表，並調用 search_YT_video 函数
         for keyword in keywords_list:
@@ -273,7 +270,9 @@ def create_summary_response(message, CR_id, user_id):
                 # 假設 search_and_create_videos 回傳一個字典
                 # 將結果轉為字典並取得 all_videos
                 if response["success"]:
+                    print("Get Videos Success")
                     video_ids = [video["video_id"] for video in response["all_videos"]]
+                    print("Extract this keyword to the videos id.")
                     suggested_Videos.append({"Keyword": keyword,
                                     "Video_id": video_ids})
                 else:
@@ -282,18 +281,33 @@ def create_summary_response(message, CR_id, user_id):
         #Add Sour Record
         app = Flask(__name__)
         app.register_blueprint(callGPT_bp)
+        from flask_jwt_extended import JWTManager
+        # 配置 JWT 機制
+        app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+        jwt = JWTManager(app)
 
         # 模擬測試上下文來呼叫 `/Sour_Record_Controller/create` 路由
-        with app.test_request_context(f'/Sour_Record_Controller/create?user_id={user_id}', json={"reason": result, "time": datetime.now(), "videos": suggested_Videos}):
-            
+        with app.test_request_context(
+            '/Sour_Record_Controller/create',
+            method='POST',  # 指定方法為 POST
+            json={
+                "reason": result,  # 這裡的 `result` 應該是你定義的變數
+                "time": datetime.now().strftime("%Y-%m-%d"),
+                "videos": suggested_Videos  # `suggested_Videos` 應該是你定義的變數
+            },
+            headers={
+                "Authorization": f"Bearer {token}",  # 確保 token 是正確生成的
+                "Content-Type": "application/json"
+            }
+        ):
             # 直接調用路由函數 `create_sour_record`
             response = create_sour_record()  # 確保這個函數已正確匯入
 
             # 假設路由函數返回一個 JSON 回應，轉為字典並處理
-            if response.json["success"]:
-                print("成功:", response.json["message"])
+            if response["success"]:
+                print("成功:", response["message"])
             else:
-                print("失敗:", response.json["message"])
+                print("失敗:", response["message"])
 
 
         # 清理使用者記憶
@@ -308,50 +322,3 @@ def create_summary_response(message, CR_id, user_id):
     except Exception as e:
         logger.error(f"出錯囉：{e}")
         return jsonify({"error": f"出錯囉：{e}"}), 500
-    
-#推薦方向控制器路由
-# @callGPT_bp.route('/summary', methods=['GET'])
-# def summary(message):
-
-#     #取得聊天記憶並生成推薦影片方向
-#     chat_history = memory.load_memory_variables({})["chat_history"]
-#     response = conversation_direction.invoke({"question": chat_history})
-    
-#     #建構訊息model
-#     message1 = Message(
-#             character = "AI",
-#             content = message,
-#             date = datetime.now().strftime("%Y-%m-%d"),
-#             time = datetime.now().strftime("%H:%M:%S")
-#         )
-    
-#     #處理關鍵字
-#     suggested_Videos = []
-#     keywords_list = process_response(response)
-#     print(keywords_list)
-    
-#     #蝶帶關鍵詞列表，並調用 search_YT_video 函数
-#     for keyword in keywords_list:
-#         data = {"keyword" : keyword, "max_results": 5}
-#         app = Flask(__name__)
-#         app.register_blueprint(callGPT_bp)
-#         with app.test_request_context(f'/api/video/search_and_create'):
-            
-#             # 直接調用 search_and_create_videos 並傳入參數
-#             response = search_and_create_videos(data)
-            
-#             # 假設 search_and_create_videos 回傳一個字典
-#             # 將結果轉為字典並取得 all_videos
-#             if response["success"]:
-
-#                 video_ids = [video["video_id"] for video in response["all_videos"]]
-#                 suggested_Videos.append({"Keyword": keyword,
-#                                 "Video_id": video_ids})
-#             else:
-#                 print(response['message'])
-
-#     #清除記憶資料    
-#     memory.clear()
-#     print(suggested_Videos)
-#     return jsonify({"Suggested_Videos": suggested_Videos, "end": "True", "response": message1.get_Message_data()})
-

@@ -24,21 +24,21 @@ class _SearchViewState extends State<SearchView> {
   List<SourRecord> result = [];
   List<SourRecord> _searchResults = [];
   List<SourRecord> SR = [];
+  String temp ="";
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_searchEvents);
-    getAllSR(widget.user_id);
+    getAllSR();
   }
 
   @override
-  void getAllSR(String user_id) async {
+  void getAllSR() async {
     Sour_Record_SVS service = Sour_Record_SVS(SR: SR);
-    await service.getAllSR(user_id);
+    await service.getAllSR();
     setState(() {
       SR = service.SR;
-      //_event = SR;
     });
   }
 
@@ -57,9 +57,13 @@ class _SearchViewState extends State<SearchView> {
       return;
     }
 
+    result.clear();
+
     for (var record in SR) {
       if (record.reason.contains(query)) {
-        result.add(record);
+        if(!_searchResults.contains(query)){
+          result.add(record);
+        }
       }
     }
 
@@ -79,18 +83,23 @@ class _SearchViewState extends State<SearchView> {
       ),
     );
 
+    temp = _searchController.text;
+
     if (updatedEvents != null) {
-      getAllSR(widget.user_id);
-      _searchEvents();
+      getAllSR();
+      _searchController.clear();
+      _searchController.text = temp;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('搜尋'),
         centerTitle: true,
+        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -105,8 +114,13 @@ class _SearchViewState extends State<SearchView> {
                     ? IconButton(
                   icon: Icon(Icons.clear),
                   onPressed: () {
-                    _searchController.clear(); // 清除文本
+                    _searchController.clear();
+
+                    setState(() {
+                      _searchResults = [];
+                    });
                   },
+
                 )
                     : null,
                 border: OutlineInputBorder(

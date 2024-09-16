@@ -15,6 +15,13 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   List<ChatRecord> chatrecords = [];
 
+  @override
+  void initState() {
+    super.initState();
+    // 在這裡初始化你的聊天紀錄
+    get_ChatRecords();
+  }
+
   // Icon data with asset paths and corresponding information
   final List<Map<String, dynamic>> iconData = [
     {
@@ -58,16 +65,27 @@ class _HomeViewState extends State<HomeView> {
 
   ];
 
-  void createChatRecord(ChatRecord chatrecord) async {
+
+  Future<void> get_ChatRecords() async{
+    Chatrecord_SVS service = new Chatrecord_SVS(chatrecords:chatrecords);
+    await service.getAllChatRecords();
+    setState(() {
+      chatrecords = service.chatrecords.reversed.toList();
+    });
+  }
+
+
+  Future<void> createChatRecord(ChatRecord chatrecord) async {
     chatrecords.add(chatrecord);
     Chatrecord_SVS service = Chatrecord_SVS(chatrecords: chatrecords);
     await service.createChatRecord();
-    setState(() {});
+    await get_ChatRecords();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Color(0xFFE9F5EF),
       body: Column(
         children: [
@@ -118,6 +136,7 @@ class _HomeViewState extends State<HomeView> {
                 color: Colors.white,
                 child: InkWell(
                   onTap: () async {
+                    String message= "";
                     late ChatRecord chatRecord;
                     QuickAlert.show(
                       context: context,
@@ -132,31 +151,22 @@ class _HomeViewState extends State<HomeView> {
                           hintText: '請輸入名稱',
                         ),
                         textInputAction: TextInputAction.next,
-                        onChanged: (value) => chatRecord = ChatRecord(
-                          id: "",
-                          userId: "",
-                          message: [],
-                          suggestedVideoIds: [],
-                          name: value,
-                          timestamp: "",
-                          finish: "no",
-                        ),
+                        onChanged: (value) => chatRecord = new ChatRecord(id: "",userId: "", message: [], suggestedVideoIds: [], name: value, timestamp: "", finish: "no"),
                       ),
                       onConfirmBtnTap: () async {
-                        if (chatRecord.name.length < 5) {
+                        if (chatRecord.name.length < 3) {
                           await QuickAlert.show(
                             context: context,
                             type: QuickAlertType.error,
-                            text: 'Please input something',
+                            text: 'Please input more than two words.',
                           );
                           return;
                         }
-                        if (chatrecords.any((element) =>
-                        element.name == chatRecord.name)) {
+                        if (chatrecords.any((element) => element.name == chatRecord.name)) {
                           await QuickAlert.show(
                             context: context,
                             type: QuickAlertType.warning,
-                            text: '該名稱已存在!',
+                            text: '請輸入其他名稱!',
                             confirmBtnText: '確認',
                             title: '該名稱已存在!',
                             confirmBtnColor: Colors.green,
@@ -164,10 +174,12 @@ class _HomeViewState extends State<HomeView> {
                           return;
                         }
                         Navigator.pop(context);
-                        createChatRecord(chatRecord);
+                        await createChatRecord(chatRecord);
                         await Future.delayed(const Duration(milliseconds: 300));
-                        Navigator.pushNamed(
-                            context, Routes.chatView, arguments: chatRecord);
+                        final result = await Navigator.pushNamed(context, Routes.chatView, arguments: chatrecords.first);
+                        if (result == true){
+                          get_ChatRecords();
+                        }
                       },
                     );
                   },
@@ -181,7 +193,7 @@ class _HomeViewState extends State<HomeView> {
                       SizedBox(width: 70),
                       Center(
                         child: Text(
-                          'New Chat',
+                          '酸通諮詢',
                           style: TextStyle(
                               color: Color.fromRGBO(56, 107, 79, 1),
                               fontSize: 25),
@@ -193,12 +205,22 @@ class _HomeViewState extends State<HomeView> {
               ),
             ),
           ),
-
           Spacer(flex: 1),
+
+          Expanded(
+            child: ListView.builder(
+              itemCount: chatrecords.length,
+              itemBuilder: (context, index) {
+                return ChatListItem(chatRecord: chatrecords[index], onUpdateCR: get_ChatRecords,);
+              },
+            ),
+          ),
         ],
       ),
     );
   }
+
+
 
   Widget _buildIconWithBackground() {
     return Container(
@@ -231,24 +253,36 @@ class _HomeViewState extends State<HomeView> {
             spacing: 4,
             runSpacing: 4,
             children: iconData.map((data) {
-              return GestureDetector(
-                onTap: () => _showIconInfo(data),
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.green[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  margin: EdgeInsets.all(8),
-                  child: Center(
-                    child: Image.asset(
-                      data['asset'],
-                      width: 40,
-                      height: 40,
+              return Column(
+                children: [
+                  GestureDetector(
+                    onTap: () => _showIconInfo(data),
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: EdgeInsets.all(8),
+                      child: Center(
+                        child: Image.asset(
+                          data['asset'],
+                          width: 40,
+                          height: 40,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  SizedBox(height: 4), // Space between icon and text
+                  Text(
+                    data['title'], // 使用iconData中的title作為說明文字
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color.fromRGBO(56, 107, 79, 1),
+                    ),
+                  ),
+                ],
               );
             }).toList(),
           ),
@@ -294,3 +328,22 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 }
+
+class ChatListItem extends StatelessWidget {
+  final ChatRecord chatRecord;
+  final dynamic Function() onUpdateCR;
+  ChatListItem({required this.chatRecord, required this.onUpdateCR});
+
+  void _handlePressed() {
+    onUpdateCR();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(chatRecord.name),
+      onTap: _handlePressed,
+    );
+  }
+}
+
